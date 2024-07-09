@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trace Width Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trace Width Calculator</h1>
+        <form id="calculatorForm">
+            <label for="current">Current (A):</label>
+            <input type="number" id="current" required>
+
+            <label for="length">Length (mil):</label>
+            <input type="number" id="length" required>
+
+            <label for="voltage">Voltage Drop (V):</label>
+            <input type="number" id="voltage" required>
+
+            <label for="thickness">Nominal Thickness (mm):</label>
+            <input type="number" id="thickness" required>
+
+            <label for="etching">Etching Factor (%):</label>
+            <input type="number" id="etching" required>
+
+            <label for="distance">Distance to Plane (mm):</label>
+            <input type="number" id="distance" required>
+
+            <button type="button" onclick="calculateTraceWidth()">Calculate</button>
+        </form>
+
+        <div class="result" id="result">
+            <!-- Result will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        function calculateTraceWidth() {
+            // Input values
+            const current = parseFloat(document.getElementById('current').value);
+            const length = parseFloat(document.getElementById('length').value);
+            const voltage = parseFloat(document.getElementById('voltage').value);
+            const thickness = parseFloat(document.getElementById('thickness').value);
+            const etchingFactor = parseFloat(document.getElementById('etching').value) / 100;
+            const distance = parseFloat(document.getElementById('distance').value);
+
+            // Constants
+            const rho = 1.68e-8; // Resistivity of copper (Ω·m)
+            const milToMm = 0.0254; // Conversion factor from mil to mm
+
+            // Adjust thickness for etching
+            const actualThickness = thickness * (1 - etchingFactor);
+            const actualThicknessMil = actualThickness / milToMm;
+
+            // Adjusted voltage drop considering plane distance (simplified factor)
+            const kd = 0.9; // Assuming a 10% improvement due to plane
+            const adjustedVoltage = voltage * kd;
+
+            // Calculate resistance
+            const resistance = adjustedVoltage / current;
+
+            // Calculate cross-sectional area (A)
+            const lengthMm = length * milToMm;
+            const crossSectionalArea = (rho * lengthMm) / resistance;
+
+            // Convert cross-sectional area to mil^2
+            const crossSectionalAreaMil2 = crossSectionalArea * 1.5500031e9;
+
+            // Calculate required trace width (W) in mils
+            const widthMil = crossSectionalAreaMil2 / actualThicknessMil;
+
+            // Display the result
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h2>Calculation Results</h2>
+                <p>Cross-Sectional Area: ${crossSectionalAreaMil2.toFixed(2)} mil²</p>
+                <p>Required Trace Width: ${widthMil.toFixed(2)} mil</p>
+            `;
+        }
+    </script>
+</body>
+</html>
